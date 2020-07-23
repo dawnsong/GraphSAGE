@@ -245,6 +245,8 @@ def train(train_data, test_data=None):
     
     # Initialize session
     sess = tf.compat.v1.Session(config=config)
+    #https://stackoverflow.com/questions/39114832/tensorflow-typeerror-fetch-argument-none-has-invalid-type-type-nonetype
+    tf.compat.v1.summary.scalar("loss", model.loss) #added to escape the "fetch none error"
     merged = tf.compat.v1.summary.merge_all()
     summary_writer = tf.compat.v1.summary.FileWriter(log_dir(), sess.graph)
      
@@ -275,6 +277,7 @@ def train(train_data, test_data=None):
 
             t = time.time()
             # Training step, https://stackoverflow.com/questions/39114832/tensorflow-typeerror-fetch-argument-none-has-invalid-type-type-nonetype
+            
             outs = sess.run([merged, model.opt_op, model.loss, model.ranks, model.aff_all, 
                     model.mrr, model.outputs1], feed_dict=feed_dict)
             train_cost = outs[2]
