@@ -5,7 +5,8 @@ from graphsage.inits import zeros
 from graphsage.layers import Layer
 import tensorflow as tf
 
-flags = tf.app.flags
+#flags = tf.app.flags
+flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 
 
@@ -41,7 +42,7 @@ class BipartiteEdgePredLayer(Layer):
 
         # output a likelihood term
         self.output_dim = 1
-        with tf.variable_scope(self.name + '_vars'):
+        with tf.compat.v1.variable_scope(self.name + '_vars'):
             # bilinear form
             if bilinear_weights:
                 #self.vars['weights'] = glorot([input_dim1, input_dim2],

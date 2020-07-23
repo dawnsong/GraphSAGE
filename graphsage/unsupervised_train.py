@@ -4,6 +4,8 @@ from __future__ import print_function
 import os
 import time
 import tensorflow as tf
+tf.compat.v1.disable_eager_execution() #https://stackoverflow.com/questions/56561734/runtimeerror-tf-placeholder-is-not-compatible-with-eager-execution
+
 import numpy as np
 
 from graphsage.models import SampleAndAggregate, SAGEInfo, Node2VecModel
@@ -16,13 +18,16 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 # Set random seed
 seed = 123
 np.random.seed(seed)
-tf.set_random_seed(seed)
+#tf.set_random_seed(seed)
+tf.compat.v1.set_random_seed(seed)
 
 # Settings
-flags = tf.app.flags
+#flags = tf.app.flags
+flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 
-tf.app.flags.DEFINE_boolean('log_device_placement', False,
+#tf.app.flags.DEFINE_boolean('log_device_placement', False,
+tf.compat.v1.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
 #core params..
 flags.DEFINE_string('model', 'graphsage', 'model names. See README for possible values.')  
@@ -119,13 +124,13 @@ def save_val_embeddings(sess, model, minibatch_iter, size, out_dir, mod=""):
 def construct_placeholders():
     # Define placeholders
     placeholders = {
-        'batch1' : tf.placeholder(tf.int32, shape=(None), name='batch1'),
-        'batch2' : tf.placeholder(tf.int32, shape=(None), name='batch2'),
+        'batch1' : tf.compat.v1.placeholder(tf.int32, shape=(None), name='batch1'),
+        'batch2' : tf.compat.v1.placeholder(tf.int32, shape=(None), name='batch2'),
         # negative samples for all nodes in the batch
-        'neg_samples': tf.placeholder(tf.int32, shape=(None,),
+        'neg_samples': tf.compat.v1.placeholder(tf.int32, shape=(None,),
             name='neg_sample_size'),
-        'dropout': tf.placeholder_with_default(0., shape=(), name='dropout'),
-        'batch_size' : tf.placeholder(tf.int32, name='batch_size'),
+        'dropout': tf.compat.v1.placeholder_with_default(0., shape=(), name='dropout'),
+        'batch_size' : tf.compat.v1.placeholder(tf.int32, name='batch_size'),
     }
     return placeholders
 
@@ -146,7 +151,7 @@ def train(train_data, test_data=None):
             max_degree=FLAGS.max_degree, 
             num_neg_samples=FLAGS.neg_sample_size,
             context_pairs = context_pairs)
-    adj_info_ph = tf.placeholder(tf.int32, shape=minibatch.adj.shape)
+    adj_info_ph = tf.compat.v1.placeholder(tf.int32, shape=minibatch.adj.shape)
     adj_info = tf.Variable(adj_info_ph, trainable=False, name="adj_info")
 
     if FLAGS.model == 'graphsage_mean':
@@ -233,18 +238,18 @@ def train(train_data, test_data=None):
     else:
         raise Exception('Error: model name unrecognized.')
 
-    config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
+    config = tf.compat.v1.ConfigProto(log_device_placement=FLAGS.log_device_placement)
     config.gpu_options.allow_growth = True
     #config.gpu_options.per_process_gpu_memory_fraction = GPU_MEM_FRACTION
     config.allow_soft_placement = True
     
     # Initialize session
-    sess = tf.Session(config=config)
-    merged = tf.summary.merge_all()
-    summary_writer = tf.summary.FileWriter(log_dir(), sess.graph)
+    sess = tf.compat.v1.Session(config=config)
+    merged = tf.compat.v1.summary.merge_all()
+    summary_writer = tf.compat.v1.summary.FileWriter(log_dir(), sess.graph)
      
     # Init variables
-    sess.run(tf.global_variables_initializer(), feed_dict={adj_info_ph: minibatch.adj})
+    sess.run(tf.compat.v1.global_variables_initializer(), feed_dict={adj_info_ph: minibatch.adj})
     
     # Train model
     
@@ -255,8 +260,8 @@ def train(train_data, test_data=None):
     avg_time = 0.0
     epoch_val_costs = []
 
-    train_adj_info = tf.assign(adj_info, minibatch.adj)
-    val_adj_info = tf.assign(adj_info, minibatch.test_adj)
+    train_adj_info = tf.compat.v1.assign(adj_info, minibatch.adj)
+    val_adj_info = tf.compat.v1.assign(adj_info, minibatch.test_adj)
     for epoch in range(FLAGS.epochs): 
         minibatch.shuffle() 
 
@@ -269,7 +274,7 @@ def train(train_data, test_data=None):
             feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
             t = time.time()
-            # Training step
+            # Training step, https://stackoverflow.com/questions/39114832/tensorflow-typeerror-fetch-argument-none-has-invalid-type-type-nonetype
             outs = sess.run([merged, model.opt_op, model.loss, model.ranks, model.aff_all, 
                     model.mrr, model.outputs1], feed_dict=feed_dict)
             train_cost = outs[2]
@@ -323,9 +328,9 @@ def train(train_data, test_data=None):
 
         if FLAGS.model == "n2v":
             # stopping the gradient for the already trained nodes
-            train_ids = tf.constant([[id_map[n]] for n in G.nodes_iter() if not G.node[n]['val'] and not G.node[n]['test']],
+            train_ids = tf.constant([[id_map[n]] for n in G.nodes_iter() if not G.nodes[n]['val'] and not G.nodes[n]['test']],
                     dtype=tf.int32)
-            test_ids = tf.constant([[id_map[n]] for n in G.nodes_iter() if G.node[n]['val'] or G.node[n]['test']], 
+            test_ids = tf.constant([[id_map[n]] for n in G.nodes_iter() if G.nodes[n]['val'] or G.nodes[n]['test']], 
                     dtype=tf.int32)
             update_nodes = tf.nn.embedding_lookup(model.context_embeds, tf.squeeze(test_ids))
             no_update_nodes = tf.nn.embedding_lookup(model.context_embeds,tf.squeeze(train_ids))
@@ -336,7 +341,7 @@ def train(train_data, test_data=None):
 
             # run random walks
             from graphsage.utils import run_random_walks
-            nodes = [n for n in G.nodes_iter() if G.node[n]["val"] or G.node[n]["test"]]
+            nodes = [n for n in G.nodes_iter() if G.nodes[n]["val"] or G.nodes[n]["test"]]
             start_time = time.time()
             pairs = run_random_walks(G, nodes, num_walks=50)
             walk_time = time.time() - start_time
@@ -380,4 +385,5 @@ def main(argv=None):
     train(train_data)
 
 if __name__ == '__main__':
-    tf.app.run()
+    #tf.app.run()
+    tf.compat.v1.app.run()

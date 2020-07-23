@@ -5,7 +5,8 @@ import tensorflow as tf
 
 from graphsage.inits import zeros
 
-flags = tf.app.flags
+#flags = tf.app.flags
+flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 
 # DISCLAIMER:

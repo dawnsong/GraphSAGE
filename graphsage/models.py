@@ -9,7 +9,8 @@ import graphsage.metrics as metrics
 from .prediction import BipartiteEdgePredLayer
 from .aggregators import MeanAggregator, MaxPoolingAggregator, MeanPoolingAggregator, SeqAggregator, GCNAggregator
 
-flags = tf.app.flags
+#flags = tf.app.flags
+flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 
 # DISCLAIMER:
@@ -108,7 +109,8 @@ class MLP(Model):
         self.inputs = placeholders['features']
         self.labels = placeholders['labels']
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        #self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
 
         self.build()
 
@@ -247,7 +249,8 @@ class SampleAndAggregate(GeneralizedModel):
         self.placeholders = placeholders
         self.layer_infos = layer_infos
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        #self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate) #https://stackoverflow.com/questions/55318273/tensorflow-api-v2-train-has-no-attribute-adamoptimizer
 
         self.build()
 
@@ -376,6 +379,7 @@ class SampleAndAggregate(GeneralizedModel):
         self._loss()
         self._accuracy()
         self.loss = self.loss / tf.cast(self.batch_size, tf.float32)
+        #grads_and_vars = self.optimizer.compute_gradients(self.loss)
         grads_and_vars = self.optimizer.compute_gradients(self.loss)
         clipped_grads_and_vars = [(tf.clip_by_value(grad, -5.0, 5.0) if grad is not None else None, var) 
                 for grad, var in grads_and_vars]
@@ -401,7 +405,7 @@ class SampleAndAggregate(GeneralizedModel):
         size = tf.shape(self.aff_all)[1]
         _, indices_of_ranks = tf.nn.top_k(self.aff_all, k=size)
         _, self.ranks = tf.nn.top_k(-indices_of_ranks, k=size)
-        self.mrr = tf.reduce_mean(tf.div(1.0, tf.cast(self.ranks[:, -1] + 1, tf.float32)))
+        self.mrr = tf.reduce_mean(tf.compat.v1.div(1.0, tf.cast(self.ranks[:, -1] + 1, tf.float32)))
         tf.summary.scalar('mrr', self.mrr)
 
 

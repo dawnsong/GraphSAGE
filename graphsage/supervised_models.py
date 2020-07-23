@@ -70,7 +70,8 @@ class SupervisedGraphsage(models.SampleAndAggregate):
         self.placeholders = placeholders
         self.layer_infos = layer_infos
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        #self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
 
         self.build()
 
