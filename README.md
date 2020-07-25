@@ -1,4 +1,8 @@
 ## GraphSage: Representation Learning on Large Graphs
+> This modification is based on "https://www.tensorflow.org/guide/migrate#make_the_code_20-native"
+> It allows directly running this tf1 based GraphSAGE in tensorflow 2.1 with python 3.7 in Anaconda's tensorflow-gpu
+> 2020 July 25
+> Xiaowei
 
 #### Authors: [William L. Hamilton](http://stanford.edu/~wleif) (wleif@stanford.edu), [Rex Ying](http://joy-of-thinking.weebly.com/) (rexying@stanford.edu)
 #### [Project Website](http://snap.stanford.edu/graphsage/)
