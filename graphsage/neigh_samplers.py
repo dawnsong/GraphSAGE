@@ -3,9 +3,10 @@ from __future__ import print_function
 
 from graphsage.layers import Layer
 
-import tensorflow as tf
-#flags = tf.app.flags
-flags = tf.compat.v1.app.flags
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
+flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 

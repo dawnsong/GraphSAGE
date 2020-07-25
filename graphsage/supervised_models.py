@@ -1,4 +1,5 @@
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 import graphsage.models as models
 import graphsage.layers as layers
@@ -70,9 +71,8 @@ class SupervisedGraphsage(models.SampleAndAggregate):
         self.placeholders = placeholders
         self.layer_infos = layer_infos
 
-        #self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
-        self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
-
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        
         self.build()
 
 

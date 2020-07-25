@@ -1,6 +1,8 @@
 from collections import namedtuple
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
 import math
 
 import graphsage.layers as layers
@@ -9,8 +11,7 @@ import graphsage.metrics as metrics
 from .prediction import BipartiteEdgePredLayer
 from .aggregators import MeanAggregator, MaxPoolingAggregator, MeanPoolingAggregator, SeqAggregator, GCNAggregator
 
-#flags = tf.app.flags
-flags = tf.compat.v1.app.flags
+flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 # DISCLAIMER:
@@ -109,8 +110,7 @@ class MLP(Model):
         self.inputs = placeholders['features']
         self.labels = placeholders['labels']
 
-        #self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
-        self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)        
 
         self.build()
 
@@ -249,8 +249,8 @@ class SampleAndAggregate(GeneralizedModel):
         self.placeholders = placeholders
         self.layer_infos = layer_infos
 
-        #self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
-        self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate) #https://stackoverflow.com/questions/55318273/tensorflow-api-v2-train-has-no-attribute-adamoptimizer
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        #self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=FLAGS.learning_rate) #https://stackoverflow.com/questions/55318273/tensorflow-api-v2-train-has-no-attribute-adamoptimizer
 
         self.build()
 
@@ -405,7 +405,8 @@ class SampleAndAggregate(GeneralizedModel):
         size = tf.shape(self.aff_all)[1]
         _, indices_of_ranks = tf.nn.top_k(self.aff_all, k=size)
         _, self.ranks = tf.nn.top_k(-indices_of_ranks, k=size)
-        self.mrr = tf.reduce_mean(tf.compat.v1.div(1.0, tf.cast(self.ranks[:, -1] + 1, tf.float32)))
+        #self.mrr = tf.reduce_mean(tf.compat.v1.div(1.0, tf.cast(self.ranks[:, -1] + 1, tf.float32)))
+        self.mrr = tf.reduce_mean(tf.math.divide(1.0, tf.cast(self.ranks[:, -1] + 1, tf.float32)))
         tf.summary.scalar('mrr', self.mrr)
 
 
@@ -433,10 +434,10 @@ class Node2VecModel(GeneralizedModel):
 
         # following the tensorflow word2vec tutorial
         self.target_embeds = tf.Variable(
-                tf.random_uniform([dict_size, nodevec_dim], -1, 1),
+                tf.random.uniform([dict_size, nodevec_dim], -1, 1),
                 name="target_embeds")
         self.context_embeds = tf.Variable(
-                tf.truncated_normal([dict_size, nodevec_dim],
+                tf.random.truncated_normal([dict_size, nodevec_dim],
                 stddev=1.0 / math.sqrt(nodevec_dim)),
                 name="context_embeds")
         self.context_bias = tf.Variable(
@@ -501,5 +502,5 @@ class Node2VecModel(GeneralizedModel):
         size = tf.shape(self.aff_all)[1]
         _, indices_of_ranks = tf.nn.top_k(self.aff_all, k=size)
         _, self.ranks = tf.nn.top_k(-indices_of_ranks, k=size)
-        self.mrr = tf.reduce_mean(tf.div(1.0, tf.cast(self.ranks[:, -1] + 1, tf.float32)))
+        self.mrr = tf.reduce_mean(tf.math.divide(1.0, tf.cast(self.ranks[:, -1] + 1, tf.float32)))
         tf.summary.scalar('mrr', self.mrr)

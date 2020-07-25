@@ -3,8 +3,8 @@ from __future__ import print_function
 
 import os
 import time
-import tensorflow as tf
-tf.compat.v1.disable_eager_execution()
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 import numpy as np
 import sklearn
@@ -114,10 +114,10 @@ def incremental_evaluate(sess, model, minibatch_iter, size, test=False):
 def construct_placeholders(num_classes):
     # Define placeholders
     placeholders = {
-        'labels' : tf.compat.v1.placeholder(tf.float32, shape=(None, num_classes), name='labels'),
-        'batch' : tf.compat.v1.placeholder(tf.int32, shape=(None), name='batch1'),
-        'dropout': tf.compat.v1.placeholder_with_default(0., shape=(), name='dropout'),
-        'batch_size' : tf.compat.v1.placeholder(tf.int32, name='batch_size'),
+        'labels' : tf.placeholder(tf.float32, shape=(None, num_classes), name='labels'),
+        'batch' : tf.placeholder(tf.int32, shape=(None), name='batch1'),
+        'dropout': tf.placeholder_with_default(0., shape=(), name='dropout'),
+        'batch_size' : tf.placeholder(tf.int32, name='batch_size'),
     }
     return placeholders
 
@@ -146,7 +146,7 @@ def train(train_data, test_data=None):
             batch_size=FLAGS.batch_size,
             max_degree=FLAGS.max_degree, 
             context_pairs = context_pairs)
-    adj_info_ph = tf.compat.v1.placeholder(tf.int32, shape=minibatch.adj.shape)
+    adj_info_ph = tf.placeholder(tf.int32, shape=minibatch.adj.shape)
     adj_info = tf.Variable(adj_info_ph, trainable=False, name="adj_info")
 
     if FLAGS.model == 'graphsage_mean':

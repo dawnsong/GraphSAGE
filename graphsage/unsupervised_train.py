@@ -3,8 +3,9 @@ from __future__ import print_function
 
 import os
 import time
-import tensorflow as tf
-tf.compat.v1.disable_eager_execution() #https://stackoverflow.com/questions/56561734/runtimeerror-tf-placeholder-is-not-compatible-with-eager-execution
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+#tf.compat.v1.disable_eager_execution() #https://stackoverflow.com/questions/56561734/runtimeerror-tf-placeholder-is-not-compatible-with-eager-execution
 
 import numpy as np
 
@@ -14,20 +15,18 @@ from graphsage.neigh_samplers import UniformNeighborSampler
 from graphsage.utils import load_data
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+#print( tf.constant('Hello from TensorFlow ' + tf.__version__) ) #xiaowei check gpu
 
 # Set random seed
 seed = 123
 np.random.seed(seed)
-#tf.set_random_seed(seed)
-tf.compat.v1.set_random_seed(seed)
+tf.set_random_seed(seed)
 
 # Settings
-#flags = tf.app.flags
-flags = tf.compat.v1.app.flags
+flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-#tf.app.flags.DEFINE_boolean('log_device_placement', False,
-tf.compat.v1.app.flags.DEFINE_boolean('log_device_placement', False,
+tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
 #core params..
 flags.DEFINE_string('model', 'graphsage', 'model names. See README for possible values.')  
@@ -55,7 +54,7 @@ flags.DEFINE_boolean('save_embeddings', True, 'whether to save embeddings for al
 flags.DEFINE_string('base_log_dir', '.', 'base directory for logging and saving embeddings')
 flags.DEFINE_integer('validate_iter', 5000, "how often to run a validation minibatch.")
 flags.DEFINE_integer('validate_batch_size', 256, "how many nodes per validation sample.")
-flags.DEFINE_integer('gpu', 1, "which gpu to use.")
+flags.DEFINE_integer('gpu', 0, "which gpu to use.")
 flags.DEFINE_integer('print_every', 50, "How often to print training info.")
 flags.DEFINE_integer('max_total_steps', 10**10, "Maximum total number of iterations")
 
@@ -124,13 +123,13 @@ def save_val_embeddings(sess, model, minibatch_iter, size, out_dir, mod=""):
 def construct_placeholders():
     # Define placeholders
     placeholders = {
-        'batch1' : tf.compat.v1.placeholder(tf.int32, shape=(None), name='batch1'),
-        'batch2' : tf.compat.v1.placeholder(tf.int32, shape=(None), name='batch2'),
+        'batch1' : tf.placeholder(tf.int32, shape=(None), name='batch1'),
+        'batch2' : tf.placeholder(tf.int32, shape=(None), name='batch2'),
         # negative samples for all nodes in the batch
-        'neg_samples': tf.compat.v1.placeholder(tf.int32, shape=(None,),
+        'neg_samples': tf.placeholder(tf.int32, shape=(None,),
             name='neg_sample_size'),
-        'dropout': tf.compat.v1.placeholder_with_default(0., shape=(), name='dropout'),
-        'batch_size' : tf.compat.v1.placeholder(tf.int32, name='batch_size'),
+        'dropout': tf.placeholder_with_default(0., shape=(), name='dropout'),
+        'batch_size' : tf.placeholder(tf.int32, name='batch_size'),
     }
     return placeholders
 
@@ -151,7 +150,7 @@ def train(train_data, test_data=None):
             max_degree=FLAGS.max_degree, 
             num_neg_samples=FLAGS.neg_sample_size,
             context_pairs = context_pairs)
-    adj_info_ph = tf.compat.v1.placeholder(tf.int32, shape=minibatch.adj.shape)
+    adj_info_ph = tf.placeholder(tf.int32, shape=minibatch.adj.shape)
     adj_info = tf.Variable(adj_info_ph, trainable=False, name="adj_info")
 
     if FLAGS.model == 'graphsage_mean':
@@ -238,20 +237,20 @@ def train(train_data, test_data=None):
     else:
         raise Exception('Error: model name unrecognized.')
 
-    config = tf.compat.v1.ConfigProto(log_device_placement=FLAGS.log_device_placement)
+    config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
     config.gpu_options.allow_growth = True
     #config.gpu_options.per_process_gpu_memory_fraction = GPU_MEM_FRACTION
     config.allow_soft_placement = True
     
     # Initialize session
-    sess = tf.compat.v1.Session(config=config)
+    sess = tf.Session(config=config)
     #https://stackoverflow.com/questions/39114832/tensorflow-typeerror-fetch-argument-none-has-invalid-type-type-nonetype
-    tf.compat.v1.summary.scalar("loss", model.loss) #added to escape the "fetch none error"
-    merged = tf.compat.v1.summary.merge_all()
-    summary_writer = tf.compat.v1.summary.FileWriter(log_dir(), sess.graph)
+    tf.summary.scalar("loss", model.loss) #added to escape the "fetch none error"
+    merged = tf.summary.merge_all()
+    summary_writer = tf.summary.FileWriter(log_dir(), sess.graph)
      
     # Init variables
-    sess.run(tf.compat.v1.global_variables_initializer(), feed_dict={adj_info_ph: minibatch.adj})
+    sess.run(tf.global_variables_initializer(), feed_dict={adj_info_ph: minibatch.adj})
     
     # Train model
     
@@ -262,8 +261,8 @@ def train(train_data, test_data=None):
     avg_time = 0.0
     epoch_val_costs = []
 
-    train_adj_info = tf.compat.v1.assign(adj_info, minibatch.adj)
-    val_adj_info = tf.compat.v1.assign(adj_info, minibatch.test_adj)
+    train_adj_info = tf.assign(adj_info, minibatch.adj)
+    val_adj_info = tf.assign(adj_info, minibatch.test_adj)
     for epoch in range(FLAGS.epochs): 
         minibatch.shuffle() 
 
@@ -388,5 +387,4 @@ def main(argv=None):
     train(train_data)
 
 if __name__ == '__main__':
-    #tf.app.run()
-    tf.compat.v1.app.run()
+    tf.app.run()    

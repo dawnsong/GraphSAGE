@@ -1,12 +1,12 @@
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 from graphsage.inits import zeros
 
-#flags = tf.app.flags
-flags = tf.compat.v1.app.flags
+flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 # DISCLAIMER:
