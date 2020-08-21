@@ -14,6 +14,7 @@ FLAGS = flags.FLAGS
 Classes that are used to sample node neighborhoods
 """
 
+
 class UniformNeighborSampler(Layer):
     """
     Uniformly samples neighbors.
@@ -26,7 +27,7 @@ class UniformNeighborSampler(Layer):
     def _call(self, inputs):
         ids, num_samples = inputs
         adj_lists = tf.nn.embedding_lookup(self.adj_info, ids) 
-        #adj_lists = tf.transpose(tf.random_shuffle(tf.transpose(adj_lists)))
-        adj_lists = tf.transpose(tf.random.shuffle(tf.transpose(adj_lists)))
-        adj_lists = tf.slice(adj_lists, [0,0], [-1, num_samples])
+        adj_lists = tf.transpose(tf.random_shuffle(tf.transpose(adj_lists)))
+        # adj_lists = tf.transpose(tf.random.shuffle(tf.transpose(adj_lists)))
+        adj_lists = tf.slice(adj_lists, [0, 0], [-1, num_samples])
         return adj_lists

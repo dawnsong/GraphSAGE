@@ -278,10 +278,8 @@ class SampleAndAggregate(GeneralizedModel):
         return samples, support_sizes
 
 
-    def aggregate(self, samples, input_features, dims, num_samples, support_sizes, batch_size=None,
-            aggregators=None, name=None, concat=False, model_size="small"):
-        """ At each layer, aggregate hidden representations of neighbors to compute the hidden representations 
-            at next layer.
+    def aggregate(self, samples, input_features, dims, num_samples, support_sizes, batch_size=None, aggregators=None, name=None, concat=False, model_size="small"):
+        """ At each layer, aggregate hidden representations of neighbors to compute the hidden representations at next layer.
         Args:
             samples: a list of samples of variable hops away for convolving at each layer of the
                 network. Length is the number of layers + 1. Each is a vector of node indices.

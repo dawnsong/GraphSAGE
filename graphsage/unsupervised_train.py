@@ -245,7 +245,7 @@ def train(train_data, test_data=None):
     # Initialize session
     sess = tf.Session(config=config)
     #https://stackoverflow.com/questions/39114832/tensorflow-typeerror-fetch-argument-none-has-invalid-type-type-nonetype
-    tf.summary.scalar("loss", model.loss) #added to escape the "fetch none error"
+    #tf.summary.scalar("loss", model.loss) #added to escape the "fetch none error"
     merged = tf.summary.merge_all()
     summary_writer = tf.summary.FileWriter(log_dir(), sess.graph)
      
